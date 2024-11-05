@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+7.1.0
+-----
+
+ * Added `dq()` function to dump SQL queries with their bindings
+
 7.1
 ---
 
