@@ -66,3 +66,35 @@ if (!function_exists('dd')) {
         exit(1);
     }
 }
+
+if (!function_exists('dq')) {
+    /**
+     * Dumps an SQL query with its bindings and exits.
+     *
+     * @param mixed $query The query builder instance
+     */
+    function dq(mixed $query): never
+    {
+        if (!\in_array(\PHP_SAPI, ['cli', 'phpdbg', 'embed'], true) && !headers_sent()) {
+            header('HTTP/1.1 500 Internal Server Error');
+        }
+
+        if (!method_exists($query, 'toSql') || !method_exists($query, 'getBindings')) {
+            VarDumper::dump(new ScalarStub('Invalid query object provided'));
+            exit(1);
+        }
+
+        $sql = $query->toSql();
+        $bindings = $query->getBindings();
+
+        foreach ($bindings as $binding) {
+            $value = is_numeric($binding) ? $binding : "'" . str_replace("'", "''", $binding) . "'";
+            $sql = preg_replace('/\?/', $value, $sql, 1);
+        }
+
+        VarDumper::dump($sql);
+        exit(1);
+    }
+}
+
+
