@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\Messenger\Bridge\Doctrine\Tests\Transport;
 
+use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection as DBALConnection;
 use Doctrine\DBAL\Exception as DBALException;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
@@ -308,7 +309,7 @@ class ConnectionTest extends TestCase
             $platform->method('getWriteLockSQL')->willReturn('FOR UPDATE SKIP LOCKED');
         }
 
-        $configuration = $this->createMock(\Doctrine\DBAL\Configuration::class);
+        $configuration = $this->createMock(Configuration::class);
         $driverConnection->method('getDatabasePlatform')->willReturn($platform);
         $driverConnection->method('getConfiguration')->willReturn($configuration);
 
@@ -647,7 +648,7 @@ class ConnectionTest extends TestCase
         if (!method_exists(QueryBuilder::class, 'forUpdate')) {
             yield 'Oracle & DBAL<3.8' => [
                 new OraclePlatform(),
-                sprintf('SELECT w.id AS "id", w.body AS "body", w.headers AS "headers", w.queue_name AS "queue_name", w.created_at AS "created_at", w.available_at AS "available_at", w.delivered_at AS "delivered_at" FROM messenger_messages w WHERE w.id IN (SELECT a.id FROM (SELECT m.id FROM messenger_messages m WHERE (m.queue_name = ?) AND (m.delivered_at is null OR m.delivered_at < ?) AND (m.available_at <= ?) ORDER BY available_at ASC) a WHERE ROWNUM <= 1) FOR UPDATE%s', method_exists(QueryBuilder::class, 'forUpdate') ? ' SKIP LOCKED' : ''),
+                \sprintf('SELECT w.id AS "id", w.body AS "body", w.headers AS "headers", w.queue_name AS "queue_name", w.created_at AS "created_at", w.available_at AS "available_at", w.delivered_at AS "delivered_at" FROM messenger_messages w WHERE w.id IN (SELECT a.id FROM (SELECT m.id FROM messenger_messages m WHERE (m.queue_name = ?) AND (m.delivered_at is null OR m.delivered_at < ?) AND (m.available_at <= ?) ORDER BY available_at ASC) a WHERE ROWNUM <= 1) FOR UPDATE%s', method_exists(QueryBuilder::class, 'forUpdate') ? ' SKIP LOCKED' : ''),
             ];
         } elseif (class_exists(MySQL57Platform::class)) {
             yield 'Oracle & 3.8<=DBAL<4' => [

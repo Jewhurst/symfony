@@ -64,15 +64,11 @@ class ConsoleHandlerTest extends TestCase
 
         // check that the handler actually outputs the record if it handles it
         $levelName = Logger::getLevelName($level);
-        $levelName = sprintf('%-9s', $levelName);
+        $levelName = \sprintf('%-9s', $levelName);
 
         $realOutput = $this->getMockBuilder(Output::class)->onlyMethods(['doWrite'])->getMock();
         $realOutput->setVerbosity($verbosity);
-        if ($realOutput->isDebug()) {
-            $log = "16:21:54 $levelName [app] My info message\n";
-        } else {
-            $log = "16:21:54 $levelName [app] My info message\n";
-        }
+        $log = "16:21:54 $levelName [app] My info message\n";
         $realOutput
             ->expects($isHandling ? $this->once() : $this->never())
             ->method('doWrite')

@@ -87,7 +87,6 @@ class HttpCache implements HttpKernelInterface, TerminableInterface
         private ?SurrogateInterface $surrogate = null,
         array $options = [],
     ) {
-
         // needed in case there is a fatal error because the backend is too slow to respond
         register_shutdown_function($this->store->cleanup(...));
 
@@ -149,7 +148,7 @@ class HttpCache implements HttpKernelInterface, TerminableInterface
     {
         $log = [];
         foreach ($this->traces as $request => $traces) {
-            $log[] = sprintf('%s: %s', $request, implode(', ', $traces));
+            $log[] = \sprintf('%s: %s', $request, implode(', ', $traces));
         }
 
         return implode('; ', $log);

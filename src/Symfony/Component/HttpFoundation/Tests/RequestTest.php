@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\Exception\ConflictingHeadersException;
 use Symfony\Component\HttpFoundation\Exception\JsonException;
 use Symfony\Component\HttpFoundation\Exception\SuspiciousOperationException;
 use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Component\HttpFoundation\IpUtils;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
@@ -2213,7 +2214,7 @@ class RequestTest extends TestCase
 
     public function testFactoryCallable()
     {
-        $requestFactory = new class() {
+        $requestFactory = new class {
             public function createRequest(): Request
             {
                 return new NewRequest();
@@ -2564,6 +2565,26 @@ class RequestTest extends TestCase
         $this->assertSame($result, Request::getTrustedProxies());
     }
 
+    public static function trustedProxiesRemoteAddr()
+    {
+        return [
+            ['1.1.1.1', ['REMOTE_ADDR'], ['1.1.1.1']],
+            ['1.1.1.1', ['REMOTE_ADDR', '2.2.2.2'], ['1.1.1.1', '2.2.2.2']],
+            [null, ['REMOTE_ADDR'], []],
+            [null, ['REMOTE_ADDR', '2.2.2.2'], ['2.2.2.2']],
+        ];
+    }
+
+    /**
+     * @testWith ["PRIVATE_SUBNETS"]
+     *           ["private_ranges"]
+     */
+    public function testTrustedProxiesPrivateSubnets(string $key)
+    {
+        Request::setTrustedProxies([$key], Request::HEADER_X_FORWARDED_FOR);
+        $this->assertSame(IpUtils::PRIVATE_SUBNETS, Request::getTrustedProxies());
+    }
+
     public function testTrustedValuesCache()
     {
         $request = Request::create('http://example.com/');
@@ -2579,16 +2600,6 @@ class RequestTest extends TestCase
         // Header is changed, cache must not be hit now
         $request->headers->set('X_FORWARDED_PROTO', 'http');
         $this->assertFalse($request->isSecure());
-    }
-
-    public static function trustedProxiesRemoteAddr()
-    {
-        return [
-            ['1.1.1.1', ['REMOTE_ADDR'], ['1.1.1.1']],
-            ['1.1.1.1', ['REMOTE_ADDR', '2.2.2.2'], ['1.1.1.1', '2.2.2.2']],
-            [null, ['REMOTE_ADDR'], []],
-            [null, ['REMOTE_ADDR', '2.2.2.2'], ['2.2.2.2']],
-        ];
     }
 
     /**
@@ -2652,7 +2663,7 @@ class RequestTest extends TestCase
     public function testReservedFlags()
     {
         foreach ((new \ReflectionClass(Request::class))->getConstants() as $constant => $value) {
-            $this->assertNotSame(0b10000000, $value, sprintf('The constant "%s" should not use the reserved value "0b10000000".', $constant));
+            $this->assertNotSame(0b10000000, $value, \sprintf('The constant "%s" should not use the reserved value "0b10000000".', $constant));
         }
     }
 

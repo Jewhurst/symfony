@@ -56,7 +56,7 @@ class LegacyTestService extends LegacyParentTestService implements ServiceSubscr
 
 class LegacyChildTestService extends LegacyTestService
 {
-    #[SubscribedService()]
+    #[SubscribedService]
     public function aChildService(): LegacyService3
     {
         return $this->container->get(__METHOD__);

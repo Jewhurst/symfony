@@ -43,6 +43,8 @@ use Symfony\Component\Messenger\Worker;
 #[AsCommand(name: 'messenger:consume', description: 'Consume messages')]
 class ConsumeMessagesCommand extends Command implements SignalableCommandInterface
 {
+    private const DEFAULT_KEEPALIVE_INTERVAL = 5;
+
     private ?Worker $worker = null;
 
     public function __construct(
@@ -75,6 +77,7 @@ class ConsumeMessagesCommand extends Command implements SignalableCommandInterfa
                 new InputOption('queues', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Limit receivers to only consume from the specified queues'),
                 new InputOption('no-reset', null, InputOption::VALUE_NONE, 'Do not reset container services after each message'),
                 new InputOption('all', null, InputOption::VALUE_NONE, 'Consume messages from all receivers'),
+                new InputOption('keepalive', null, InputOption::VALUE_OPTIONAL, 'Whether to use the transport\'s keepalive mechanism if implemented', self::DEFAULT_KEEPALIVE_INTERVAL),
             ])
             ->setHelp(<<<'EOF'
 The <info>%command.name%</info> command consumes messages and dispatches them to the message bus.
@@ -124,6 +127,13 @@ EOF
         ;
     }
 
+    protected function initialize(InputInterface $input, OutputInterface $output): void
+    {
+        if ($input->hasParameterOption('--keepalive')) {
+            $this->getApplication()->setAlarmInterval((int) ($input->getOption('keepalive') ?? self::DEFAULT_KEEPALIVE_INTERVAL));
+        }
+    }
+
     protected function interact(InputInterface $input, OutputInterface $output): void
     {
         $io = new SymfonyStyle($input, $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output);
@@ -137,7 +147,7 @@ EOF
 
             $io->writeln('Choose which receivers you want to consume messages from in order of priority.');
             if (\count($this->receiverNames) > 1) {
-                $io->writeln(sprintf('Hint: to consume from multiple, use a list of their names, e.g. <comment>%s</comment>', implode(', ', $this->receiverNames)));
+                $io->writeln(\sprintf('Hint: to consume from multiple, use a list of their names, e.g. <comment>%s</comment>', implode(', ', $this->receiverNames)));
             }
 
             $question = new ChoiceQuestion('Select receivers to consume:', $this->receiverNames, 0);
@@ -158,9 +168,9 @@ EOF
         $receiverNames = $input->getOption('all') ? $this->receiverNames : $input->getArgument('receivers');
         foreach ($receiverNames as $receiverName) {
             if (!$this->receiverLocator->has($receiverName)) {
-                $message = sprintf('The receiver "%s" does not exist.', $receiverName);
+                $message = \sprintf('The receiver "%s" does not exist.', $receiverName);
                 if ($this->receiverNames) {
-                    $message .= sprintf(' Valid receivers are: %s.', implode(', ', $this->receiverNames));
+                    $message .= \sprintf(' Valid receivers are: %s.', implode(', ', $this->receiverNames));
                 }
 
                 throw new RuntimeException($message);
@@ -187,7 +197,7 @@ EOF
         $stopsWhen = [];
         if (null !== $limit = $input->getOption('limit')) {
             if (!is_numeric($limit) || 0 >= $limit) {
-                throw new InvalidOptionException(sprintf('Option "limit" must be a positive integer, "%s" passed.', $limit));
+                throw new InvalidOptionException(\sprintf('Option "limit" must be a positive integer, "%s" passed.', $limit));
             }
 
             $stopsWhen[] = "processed {$limit} messages";
@@ -206,7 +216,7 @@ EOF
 
         if (null !== $timeLimit = $input->getOption('time-limit')) {
             if (!is_numeric($timeLimit) || 0 >= $timeLimit) {
-                throw new InvalidOptionException(sprintf('Option "time-limit" must be a positive integer, "%s" passed.', $timeLimit));
+                throw new InvalidOptionException(\sprintf('Option "time-limit" must be a positive integer, "%s" passed.', $timeLimit));
             }
 
             $stopsWhen[] = "been running for {$timeLimit}s";
@@ -216,7 +226,7 @@ EOF
         $stopsWhen[] = 'received a stop signal via the messenger:stop-workers command';
 
         $io = new SymfonyStyle($input, $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output);
-        $io->success(sprintf('Consuming messages from transport%s "%s".', \count($receivers) > 1 ? 's' : '', implode(', ', $receiverNames)));
+        $io->success(\sprintf('Consuming messages from transport%s "%s".', \count($receivers) > 1 ? 's' : '', implode(', ', $receiverNames)));
 
         if ($stopsWhen) {
             $last = array_pop($stopsWhen);
@@ -264,12 +274,20 @@ EOF
 
     public function getSubscribedSignals(): array
     {
-        return $this->signals ?? (\extension_loaded('pcntl') ? [\SIGTERM, \SIGINT, \SIGQUIT] : []);
+        return $this->signals ?? (\extension_loaded('pcntl') ? [\SIGTERM, \SIGINT, \SIGQUIT, \SIGALRM] : []);
     }
 
     public function handleSignal(int $signal, int|false $previousExitCode = 0): int|false
     {
         if (!$this->worker) {
+            return false;
+        }
+
+        if (\SIGALRM === $signal) {
+            $this->logger?->info('Sending keepalive request.', ['transport_names' => $this->worker->getMetadata()->getTransportNames()]);
+
+            $this->worker->keepalive($this->getApplication()->getAlarmInterval());
+
             return false;
         }
 

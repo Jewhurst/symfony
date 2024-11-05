@@ -116,7 +116,7 @@ class RequestPayloadValueResolverTest extends TestCase
         $validator->expects($this->never())
             ->method('validate');
 
-        $resolver = new RequestPayloadValueResolver(new Serializer(), $validator);
+        $resolver = new RequestPayloadValueResolver(new Serializer([new ObjectNormalizer()], ['json' => new JsonEncoder()]), $validator);
 
         $argument = new ArgumentMetadata('valid', RequestPayload::class, false, false, null, true, [
             MapRequestPayload::class => new MapRequestPayload(),
@@ -138,9 +138,9 @@ class RequestPayloadValueResolverTest extends TestCase
         $validator->expects($this->never())
             ->method('validate');
 
-        $resolver = new RequestPayloadValueResolver(new Serializer(), $validator);
+        $resolver = new RequestPayloadValueResolver(new Serializer([new ObjectNormalizer()], ['json' => new JsonEncoder()]), $validator);
 
-        $argument = new ArgumentMetadata('valid', RequestPayload::class, false, false, null, true, [
+        $argument = new ArgumentMetadata('valid', QueryPayload::class, false, false, null, true, [
             MapQueryString::class => new MapQueryString(),
         ]);
         $request = Request::create('/', 'GET');
@@ -160,7 +160,7 @@ class RequestPayloadValueResolverTest extends TestCase
         $validator->expects($this->never())
             ->method('validate');
 
-        $resolver = new RequestPayloadValueResolver(new Serializer(), $validator);
+        $resolver = new RequestPayloadValueResolver(new Serializer([new ObjectNormalizer()], ['json' => new JsonEncoder()]), $validator);
 
         $argument = new ArgumentMetadata('valid', RequestPayload::class, false, false, null, false, [
             MapRequestPayload::class => new MapRequestPayload(),
@@ -173,9 +173,9 @@ class RequestPayloadValueResolverTest extends TestCase
 
         try {
             $resolver->onKernelControllerArguments($event);
-            $this->fail(sprintf('Expected "%s" to be thrown.', HttpException::class));
+            $this->fail(\sprintf('Expected "%s" to be thrown.', HttpException::class));
         } catch (HttpException $e) {
-            $this->assertSame(422, $e->getStatusCode());
+            $this->assertSame(400, $e->getStatusCode());
         }
     }
 
@@ -185,9 +185,9 @@ class RequestPayloadValueResolverTest extends TestCase
         $validator->expects($this->never())
             ->method('validate');
 
-        $resolver = new RequestPayloadValueResolver(new Serializer(), $validator);
+        $resolver = new RequestPayloadValueResolver(new Serializer([new ObjectNormalizer()]), $validator);
 
-        $argument = new ArgumentMetadata('valid', RequestPayload::class, false, false, null, false, [
+        $argument = new ArgumentMetadata('valid', QueryPayload::class, false, false, null, false, [
             MapQueryString::class => new MapQueryString(),
         ]);
         $request = Request::create('/', 'GET');
@@ -198,7 +198,7 @@ class RequestPayloadValueResolverTest extends TestCase
 
         try {
             $resolver->onKernelControllerArguments($event);
-            $this->fail(sprintf('Expected "%s" to be thrown.', HttpException::class));
+            $this->fail(\sprintf('Expected "%s" to be thrown.', HttpException::class));
         } catch (HttpException $e) {
             $this->assertSame(404, $e->getStatusCode());
         }
@@ -222,7 +222,7 @@ class RequestPayloadValueResolverTest extends TestCase
 
         try {
             $resolver->onKernelControllerArguments($event);
-            $this->fail(sprintf('Expected "%s" to be thrown.', HttpException::class));
+            $this->fail(\sprintf('Expected "%s" to be thrown.', HttpException::class));
         } catch (HttpException $e) {
             $this->assertInstanceOf(PartialDenormalizationException::class, $e->getPrevious());
         }
@@ -230,7 +230,7 @@ class RequestPayloadValueResolverTest extends TestCase
 
     public function testValidationNotPassed()
     {
-        $content = '{"price": 50, "title": ["not a string"]}';
+        $content = '{"price": 50.0, "title": ["not a string"]}';
         $serializer = new Serializer([new ObjectNormalizer()], ['json' => new JsonEncoder()]);
 
         $validator = $this->createMock(ValidatorInterface::class);
@@ -250,7 +250,7 @@ class RequestPayloadValueResolverTest extends TestCase
 
         try {
             $resolver->onKernelControllerArguments($event);
-            $this->fail(sprintf('Expected "%s" to be thrown.', HttpException::class));
+            $this->fail(\sprintf('Expected "%s" to be thrown.', HttpException::class));
         } catch (HttpException $e) {
             $validationFailedException = $e->getPrevious();
             $this->assertSame(422, $e->getStatusCode());
@@ -281,7 +281,7 @@ class RequestPayloadValueResolverTest extends TestCase
 
         try {
             $resolver->onKernelControllerArguments($event);
-            $this->fail(sprintf('Expected "%s" to be thrown.', HttpException::class));
+            $this->fail(\sprintf('Expected "%s" to be thrown.', HttpException::class));
         } catch (HttpException $e) {
             $validationFailedException = $e->getPrevious();
             $this->assertInstanceOf(ValidationFailedException::class, $validationFailedException);
@@ -306,7 +306,7 @@ class RequestPayloadValueResolverTest extends TestCase
 
         try {
             $resolver->onKernelControllerArguments($event);
-            $this->fail(sprintf('Expected "%s" to be thrown.', HttpException::class));
+            $this->fail(\sprintf('Expected "%s" to be thrown.', HttpException::class));
         } catch (HttpException $e) {
             $this->assertSame(415, $e->getStatusCode());
         }
@@ -592,7 +592,7 @@ class RequestPayloadValueResolverTest extends TestCase
 
         try {
             $resolver->onKernelControllerArguments($event);
-            $this->fail(sprintf('Expected "%s" to be thrown.', HttpException::class));
+            $this->fail(\sprintf('Expected "%s" to be thrown.', HttpException::class));
         } catch (HttpException $e) {
             $this->assertSame(415, $e->getStatusCode());
             $this->assertSame($expectedExceptionMessage, $e->getMessage());
@@ -688,7 +688,7 @@ class RequestPayloadValueResolverTest extends TestCase
 
         try {
             $resolver->onKernelControllerArguments($event);
-            $this->fail(sprintf('Expected "%s" to be thrown.', HttpException::class));
+            $this->fail(\sprintf('Expected "%s" to be thrown.', HttpException::class));
         } catch (HttpException $e) {
             $validationFailedException = $e->getPrevious();
             $this->assertInstanceOf(ValidationFailedException::class, $validationFailedException);
@@ -753,7 +753,7 @@ class RequestPayloadValueResolverTest extends TestCase
 
         try {
             $resolver->onKernelControllerArguments($event);
-            $this->fail(sprintf('Expected "%s" to be thrown.', HttpException::class));
+            $this->fail(\sprintf('Expected "%s" to be thrown.', HttpException::class));
         } catch (HttpException $e) {
             $validationFailedException = $e->getPrevious();
             $this->assertSame(400, $e->getStatusCode());
@@ -784,7 +784,7 @@ class RequestPayloadValueResolverTest extends TestCase
 
         try {
             $resolver->onKernelControllerArguments($event);
-            $this->fail(sprintf('Expected "%s" to be thrown.', HttpException::class));
+            $this->fail(\sprintf('Expected "%s" to be thrown.', HttpException::class));
         } catch (HttpException $e) {
             $validationFailedException = $e->getPrevious();
             $this->assertSame(400, $e->getStatusCode());

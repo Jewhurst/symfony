@@ -17,7 +17,6 @@ use Symfony\Component\Lock\Exception\InvalidTtlException;
 use Symfony\Component\Lock\Exception\LockConflictedException;
 use Symfony\Component\Lock\Exception\LockStorageException;
 use Symfony\Component\Lock\Key;
-use Symfony\Component\Lock\PersistingStoreInterface;
 use Symfony\Component\Lock\SharedLockStoreInterface;
 
 /**
@@ -30,6 +29,8 @@ class RedisStore implements SharedLockStoreInterface
 {
     use ExpiringStoreTrait;
 
+    private const NO_SCRIPT_ERROR_MESSAGE = 'NOSCRIPT No matching script. Please use EVAL.';
+
     private bool $supportTime;
 
     /**
@@ -40,7 +41,7 @@ class RedisStore implements SharedLockStoreInterface
         private float $initialTtl = 300.0,
     ) {
         if ($initialTtl <= 0) {
-            throw new InvalidTtlException(sprintf('"%s()" expects a strictly positive TTL. Got %d.', __METHOD__, $initialTtl));
+            throw new InvalidTtlException(\sprintf('"%s()" expects a strictly positive TTL. Got %d.', __METHOD__, $initialTtl));
         }
     }
 
@@ -227,11 +228,32 @@ class RedisStore implements SharedLockStoreInterface
 
     private function evaluate(string $script, string $resource, array $args): mixed
     {
+        $scriptSha = sha1($script);
+
         if ($this->redis instanceof \Redis || $this->redis instanceof Relay || $this->redis instanceof \RedisCluster) {
             $this->redis->clearLastError();
-            $result = $this->redis->eval($script, array_merge([$resource], $args), 1);
-            if (null !== $err = $this->redis->getLastError()) {
-                throw new LockStorageException($err);
+
+            $result = $this->redis->evalSha($scriptSha, array_merge([$resource], $args), 1);
+            if (self::NO_SCRIPT_ERROR_MESSAGE === $err = $this->redis->getLastError()) {
+                $this->redis->clearLastError();
+
+                if ($this->redis instanceof \RedisCluster) {
+                    foreach ($this->redis->_masters() as $master) {
+                        $this->redis->script($master, 'LOAD', $script);
+                    }
+                } else {
+                    $this->redis->script('LOAD', $script);
+                }
+
+                if (null !== $err = $this->redis->getLastError()) {
+                    throw new LockStorageException($err);
+                }
+
+                $result = $this->redis->evalSha($scriptSha, array_merge([$resource], $args), 1);
+
+                if (null !== $err = $this->redis->getLastError()) {
+                    throw new LockStorageException($err);
+                }
             }
 
             return $result;
@@ -240,9 +262,21 @@ class RedisStore implements SharedLockStoreInterface
         if ($this->redis instanceof \RedisArray) {
             $client = $this->redis->_instance($this->redis->_target($resource));
             $client->clearLastError();
-            $result = $client->eval($script, array_merge([$resource], $args), 1);
-            if (null !== $err = $client->getLastError()) {
-                throw new LockStorageException($err);
+            $result = $client->evalSha($scriptSha, array_merge([$resource], $args), 1);
+            if (self::NO_SCRIPT_ERROR_MESSAGE === $err = $client->getLastError()) {
+                $client->clearLastError();
+
+                $client->script('LOAD', $script);
+
+                if (null !== $err = $client->getLastError()) {
+                    throw new LockStorageException($err);
+                }
+
+                $result = $client->evalSha($scriptSha, array_merge([$resource], $args), 1);
+
+                if (null !== $err = $client->getLastError()) {
+                    throw new LockStorageException($err);
+                }
             }
 
             return $result;
@@ -251,7 +285,22 @@ class RedisStore implements SharedLockStoreInterface
         \assert($this->redis instanceof \Predis\ClientInterface);
 
         try {
-            return $this->redis->eval(...array_merge([$script, 1, $resource], $args));
+            return $this->redis->evalSha($scriptSha, 1, $resource, ...$args);
+        } catch (ServerException $e) {
+            // Fallthrough only if we need to load the script
+            if (self::NO_SCRIPT_ERROR_MESSAGE !== $e->getMessage()) {
+                throw new LockStorageException($e->getMessage(), $e->getCode(), $e);
+            }
+        }
+
+        try {
+            $this->redis->script('LOAD', $script);
+        } catch (ServerException $e) {
+            throw new LockStorageException($e->getMessage(), $e->getCode(), $e);
+        }
+
+        try {
+            return $this->redis->evalSha($scriptSha, 1, $resource, ...$args);
         } catch (ServerException $e) {
             throw new LockStorageException($e->getMessage(), $e->getCode(), $e);
         }

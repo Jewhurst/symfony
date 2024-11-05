@@ -45,7 +45,6 @@ final class UnsupportedSchemeExceptionTest extends TestCase
             Bridge\FortySixElks\FortySixElksTransportFactory::class => false,
             Bridge\FreeMobile\FreeMobileTransportFactory::class => false,
             Bridge\GatewayApi\GatewayApiTransportFactory::class => false,
-            Bridge\Gitter\GitterTransportFactory::class => false,
             Bridge\GoIp\GoIpTransportFactory::class => false,
             Bridge\GoogleChat\GoogleChatTransportFactory::class => false,
             Bridge\Infobip\InfobipTransportFactory::class => false,
@@ -53,6 +52,7 @@ final class UnsupportedSchemeExceptionTest extends TestCase
             Bridge\Isendpro\IsendproTransportFactory::class => false,
             Bridge\KazInfoTeh\KazInfoTehTransportFactory::class => false,
             Bridge\LightSms\LightSmsTransportFactory::class => false,
+            Bridge\LineBot\LineBotTransportFactory::class => false,
             Bridge\LineNotify\LineNotifyTransportFactory::class => false,
             Bridge\LinkedIn\LinkedInTransportFactory::class => false,
             Bridge\Lox24\Lox24TransportFactory::class => false,
@@ -72,6 +72,7 @@ final class UnsupportedSchemeExceptionTest extends TestCase
             Bridge\OvhCloud\OvhCloudTransportFactory::class => false,
             Bridge\PagerDuty\PagerDutyTransportFactory::class => false,
             Bridge\Plivo\PlivoTransportFactory::class => false,
+            Bridge\Primotexto\PrimotextoTransportFactory::class => false,
             Bridge\Pushover\PushoverTransportFactory::class => false,
             Bridge\Pushy\PushyTransportFactory::class => false,
             Bridge\Redlink\RedlinkTransportFactory::class => false,
@@ -79,6 +80,7 @@ final class UnsupportedSchemeExceptionTest extends TestCase
             Bridge\RocketChat\RocketChatTransportFactory::class => false,
             Bridge\Sendberry\SendberryTransportFactory::class => false,
             Bridge\Sevenio\SevenIoTransportFactory::class => false,
+            Bridge\Sipgate\SipgateTransportFactory::class => false,
             Bridge\SimpleTextin\SimpleTextinTransportFactory::class => false,
             Bridge\Sinch\SinchTransportFactory::class => false,
             Bridge\Slack\SlackTransportFactory::class => false,
@@ -92,6 +94,7 @@ final class UnsupportedSchemeExceptionTest extends TestCase
             Bridge\Smsmode\SmsmodeTransportFactory::class => false,
             Bridge\SmsSluzba\SmsSluzbaTransportFactory::class => false,
             Bridge\SpotHit\SpotHitTransportFactory::class => false,
+            Bridge\Sweego\SweegoTransportFactory::class => false,
             Bridge\Telegram\TelegramTransportFactory::class => false,
             Bridge\Telnyx\TelnyxTransportFactory::class => false,
             Bridge\Termii\TermiiTransportFactory::class => false,
@@ -111,10 +114,10 @@ final class UnsupportedSchemeExceptionTest extends TestCase
      */
     public function testMessageWhereSchemeIsPartOfSchemeToPackageMap(string $scheme, string $package)
     {
-        $dsn = new Dsn(sprintf('%s://localhost', $scheme));
+        $dsn = new Dsn(\sprintf('%s://localhost', $scheme));
 
         $this->assertSame(
-            sprintf('Unable to send notification via "%s" as the bridge is not installed. Try running "composer require %s".', $scheme, $package),
+            \sprintf('Unable to send notification via "%s" as the bridge is not installed. Try running "composer require %s".', $scheme, $package),
             (new UnsupportedSchemeException($dsn))->getMessage()
         );
     }
@@ -140,13 +143,13 @@ final class UnsupportedSchemeExceptionTest extends TestCase
         yield ['forty-six-elks', 'symfony/forty-six-elks-notifier'];
         yield ['freemobile', 'symfony/free-mobile-notifier'];
         yield ['gatewayapi', 'symfony/gateway-api-notifier'];
-        yield ['gitter', 'symfony/gitter-notifier'];
         yield ['googlechat', 'symfony/google-chat-notifier'];
         yield ['infobip', 'symfony/infobip-notifier'];
         yield ['iqsms', 'symfony/iqsms-notifier'];
         yield ['isendpro', 'symfony/isendpro-notifier'];
         yield ['kaz-info-teh', 'symfony/kaz-info-teh-notifier'];
         yield ['lightsms', 'symfony/light-sms-notifier'];
+        yield ['linebot', 'symfony/line-bot-notifier'];
         yield ['linenotify', 'symfony/line-notify-notifier'];
         yield ['linkedin', 'symfony/linked-in-notifier'];
         yield ['lox24', 'symfony/lox24-notifier'];
@@ -166,12 +169,14 @@ final class UnsupportedSchemeExceptionTest extends TestCase
         yield ['ovhcloud', 'symfony/ovh-cloud-notifier'];
         yield ['pagerduty', 'symfony/pager-duty-notifier'];
         yield ['plivo', 'symfony/plivo-notifier'];
+        yield ['primotexto', 'symfony/primotexto-notifier'];
         yield ['pushover', 'symfony/pushover-notifier'];
         yield ['redlink', 'symfony/redlink-notifier'];
         yield ['ringcentral', 'symfony/ring-central-notifier'];
         yield ['rocketchat', 'symfony/rocket-chat-notifier'];
         yield ['sendberry', 'symfony/sendberry-notifier'];
         yield ['sevenio', 'symfony/sevenio-notifier'];
+        yield ['sipgate', 'symfony/sipgate-notifier'];
         yield ['simpletextin', 'symfony/simple-textin-notifier'];
         yield ['sinch', 'symfony/sinch-notifier'];
         yield ['slack', 'symfony/slack-notifier'];

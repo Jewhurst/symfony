@@ -30,7 +30,7 @@ class EntityValueResolverTest extends TestCase
 {
     public function testResolveWithoutClass()
     {
-        $manager = $this->getMockBuilder(ObjectManager::class)->getMock();
+        $manager = $this->createMock(ObjectManager::class);
         $registry = $this->createRegistry($manager);
         $resolver = new EntityValueResolver($registry);
 
@@ -42,7 +42,7 @@ class EntityValueResolverTest extends TestCase
 
     public function testResolveWithoutAttribute()
     {
-        $manager = $this->getMockBuilder(ObjectManager::class)->getMock();
+        $manager = $this->createMock(ObjectManager::class);
         $registry = $this->createRegistry($manager);
         $resolver = new EntityValueResolver($registry, null, new MapEntity(disabled: true));
 
@@ -68,7 +68,7 @@ class EntityValueResolverTest extends TestCase
      */
     public function testResolveWithNoIdAndDataOptional()
     {
-        $manager = $this->getMockBuilder(ObjectManager::class)->getMock();
+        $manager = $this->createMock(ObjectManager::class);
         $registry = $this->createRegistry($manager);
         $resolver = new EntityValueResolver($registry);
 
@@ -80,7 +80,7 @@ class EntityValueResolverTest extends TestCase
 
     public function testResolveWithStripNulls()
     {
-        $manager = $this->getMockBuilder(ObjectManager::class)->getMock();
+        $manager = $this->createMock(ObjectManager::class);
         $registry = $this->createRegistry($manager);
         $resolver = new EntityValueResolver($registry);
 
@@ -102,7 +102,7 @@ class EntityValueResolverTest extends TestCase
      */
     public function testResolveWithId(string|int $id)
     {
-        $manager = $this->getMockBuilder(ObjectManager::class)->getMock();
+        $manager = $this->createMock(ObjectManager::class);
         $registry = $this->createRegistry($manager);
         $resolver = new EntityValueResolver($registry);
 
@@ -111,7 +111,7 @@ class EntityValueResolverTest extends TestCase
 
         $argument = $this->createArgument('stdClass', new MapEntity(id: 'id'));
 
-        $repository = $this->getMockBuilder(ObjectRepository::class)->getMock();
+        $repository = $this->createMock(ObjectRepository::class);
         $repository->expects($this->once())
             ->method('find')
             ->with($id)
@@ -127,7 +127,7 @@ class EntityValueResolverTest extends TestCase
 
     public function testResolveWithNullId()
     {
-        $manager = $this->getMockBuilder(ObjectManager::class)->getMock();
+        $manager = $this->createMock(ObjectManager::class);
         $registry = $this->createRegistry($manager);
         $resolver = new EntityValueResolver($registry);
 
@@ -148,14 +148,14 @@ class EntityValueResolverTest extends TestCase
         $request = new Request();
         $request->attributes->set('nullValue', null);
 
-        $argument = $this->createArgument(entity: new MapEntity(id: ['nullValue']), isNullable: true,);
+        $argument = $this->createArgument(entity: new MapEntity(id: ['nullValue']), isNullable: true);
 
         $this->assertSame([null], $resolver->resolve($request, $argument));
     }
 
     public function testResolveWithConversionFailedException()
     {
-        $manager = $this->getMockBuilder(ObjectManager::class)->getMock();
+        $manager = $this->createMock(ObjectManager::class);
         $registry = $this->createRegistry($manager);
         $resolver = new EntityValueResolver($registry);
 
@@ -164,7 +164,7 @@ class EntityValueResolverTest extends TestCase
 
         $argument = $this->createArgument('stdClass', new MapEntity(id: 'id', message: 'Test'));
 
-        $repository = $this->getMockBuilder(ObjectRepository::class)->getMock();
+        $repository = $this->createMock(ObjectRepository::class);
         $repository->expects($this->once())
             ->method('find')
             ->with('test')
@@ -183,7 +183,7 @@ class EntityValueResolverTest extends TestCase
 
     public function testUsedProperIdentifier()
     {
-        $manager = $this->getMockBuilder(ObjectManager::class)->getMock();
+        $manager = $this->createMock(ObjectManager::class);
         $registry = $this->createRegistry($manager);
         $resolver = new EntityValueResolver($registry);
 
@@ -209,7 +209,7 @@ class EntityValueResolverTest extends TestCase
      */
     public function testResolveGuessOptional()
     {
-        $manager = $this->getMockBuilder(ObjectManager::class)->getMock();
+        $manager = $this->createMock(ObjectManager::class);
         $registry = $this->createRegistry($manager);
         $resolver = new EntityValueResolver($registry);
 
@@ -218,7 +218,7 @@ class EntityValueResolverTest extends TestCase
 
         $argument = $this->createArgument('stdClass', new MapEntity(), 'arg', true);
 
-        $metadata = $this->getMockBuilder(ClassMetadata::class)->getMock();
+        $metadata = $this->createMock(ClassMetadata::class);
         $manager->expects($this->once())
             ->method('getClassMetadata')
             ->with('stdClass')
@@ -231,7 +231,7 @@ class EntityValueResolverTest extends TestCase
 
     public function testResolveWithMappingAndExclude()
     {
-        $manager = $this->getMockBuilder(ObjectManager::class)->getMock();
+        $manager = $this->createMock(ObjectManager::class);
         $registry = $this->createRegistry($manager);
         $resolver = new EntityValueResolver($registry);
 
@@ -247,7 +247,7 @@ class EntityValueResolverTest extends TestCase
         $manager->expects($this->never())
             ->method('getClassMetadata');
 
-        $repository = $this->getMockBuilder(ObjectRepository::class)->getMock();
+        $repository = $this->createMock(ObjectRepository::class);
         $repository->expects($this->once())
             ->method('findOneBy')
             ->with(['Foo' => 1])
@@ -263,7 +263,7 @@ class EntityValueResolverTest extends TestCase
 
     public function testResolveWithRouteMapping()
     {
-        $manager = $this->getMockBuilder(ObjectManager::class)->getMock();
+        $manager = $this->createMock(ObjectManager::class);
         $registry = $this->createRegistry($manager);
         $resolver = new EntityValueResolver($registry);
 
@@ -281,7 +281,7 @@ class EntityValueResolverTest extends TestCase
         $conference = new \stdClass();
         $article = new \stdClass();
 
-        $repository = $this->getMockBuilder(ObjectRepository::class)->getMock();
+        $repository = $this->createMock(ObjectRepository::class);
         $repository->expects($this->any())
             ->method('findOneBy')
             ->willReturnCallback(static fn ($v) => match ($v) {
@@ -299,7 +299,7 @@ class EntityValueResolverTest extends TestCase
 
     public function testExceptionWithExpressionIfNoLanguageAvailable()
     {
-        $manager = $this->getMockBuilder(ObjectManager::class)->getMock();
+        $manager = $this->createMock(ObjectManager::class);
         $registry = $this->createRegistry($manager);
         $resolver = new EntityValueResolver($registry);
 
@@ -317,9 +317,9 @@ class EntityValueResolverTest extends TestCase
 
     public function testExpressionFailureReturns404()
     {
-        $manager = $this->getMockBuilder(ObjectManager::class)->getMock();
+        $manager = $this->createMock(ObjectManager::class);
         $registry = $this->createRegistry($manager);
-        $language = $this->getMockBuilder(ExpressionLanguage::class)->getMock();
+        $language = $this->createMock(ExpressionLanguage::class);
         $resolver = new EntityValueResolver($registry, $language);
 
         $this->expectException(NotFoundHttpException::class);
@@ -331,7 +331,7 @@ class EntityValueResolverTest extends TestCase
             'arg1'
         );
 
-        $repository = $this->getMockBuilder(ObjectRepository::class)->getMock();
+        $repository = $this->createMock(ObjectRepository::class);
         // find should not be attempted on this repository as a fallback
         $repository->expects($this->never())
             ->method('find');
@@ -350,9 +350,9 @@ class EntityValueResolverTest extends TestCase
 
     public function testExpressionMapsToArgument()
     {
-        $manager = $this->getMockBuilder(ObjectManager::class)->getMock();
+        $manager = $this->createMock(ObjectManager::class);
         $registry = $this->createRegistry($manager);
-        $language = $this->getMockBuilder(ExpressionLanguage::class)->getMock();
+        $language = $this->createMock(ExpressionLanguage::class);
         $resolver = new EntityValueResolver($registry, $language);
 
         $request = new Request();
@@ -363,7 +363,7 @@ class EntityValueResolverTest extends TestCase
             'arg1'
         );
 
-        $repository = $this->getMockBuilder(ObjectRepository::class)->getMock();
+        $repository = $this->createMock(ObjectRepository::class);
         // find should not be attempted on this repository as a fallback
         $repository->expects($this->never())
             ->method('find');
@@ -429,9 +429,9 @@ class EntityValueResolverTest extends TestCase
 
     public function testExpressionSyntaxErrorThrowsException()
     {
-        $manager = $this->getMockBuilder(ObjectManager::class)->getMock();
+        $manager = $this->createMock(ObjectManager::class);
         $registry = $this->createRegistry($manager);
-        $language = $this->getMockBuilder(ExpressionLanguage::class)->getMock();
+        $language = $this->createMock(ExpressionLanguage::class);
         $resolver = new EntityValueResolver($registry, $language);
 
         $request = new Request();
@@ -441,7 +441,7 @@ class EntityValueResolverTest extends TestCase
             'arg1'
         );
 
-        $repository = $this->getMockBuilder(ObjectRepository::class)->getMock();
+        $repository = $this->createMock(ObjectRepository::class);
         // find should not be attempted on this repository as a fallback
         $repository->expects($this->never())
             ->method('find');
@@ -462,7 +462,7 @@ class EntityValueResolverTest extends TestCase
 
     public function testAlreadyResolved()
     {
-        $manager = $this->getMockBuilder(ObjectManager::class)->getMock();
+        $manager = $this->createMock(ObjectManager::class);
         $registry = $this->createRegistry($manager);
         $resolver = new EntityValueResolver($registry);
 
@@ -481,7 +481,7 @@ class EntityValueResolverTest extends TestCase
 
     private function createRegistry(?ObjectManager $manager = null): ManagerRegistry&MockObject
     {
-        $registry = $this->getMockBuilder(ManagerRegistry::class)->getMock();
+        $registry = $this->createMock(ManagerRegistry::class);
 
         $registry->expects($this->any())
             ->method('getManagerForClass')

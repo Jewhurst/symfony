@@ -91,7 +91,6 @@ class UserValueResolverTest extends TestCase
         $tokenStorage->setToken($token);
 
         $resolver = new UserValueResolver($tokenStorage);
-        $metadata = $this->createMock(ArgumentMetadata::class);
         $metadata = new ArgumentMetadata('foo', null, false, false, null, false, [new CurrentUser()]);
 
         $this->assertSame([$user], $resolver->resolve(Request::create('/'), $metadata));
@@ -105,7 +104,6 @@ class UserValueResolverTest extends TestCase
         $tokenStorage->setToken($token);
 
         $resolver = new UserValueResolver($tokenStorage);
-        $metadata = $this->createMock(ArgumentMetadata::class);
         $metadata = new ArgumentMetadata('foo', InMemoryUser::class, false, false, null, false, [new CurrentUser()]);
 
         $this->assertSame([$user], $resolver->resolve(Request::create('/'), $metadata));
@@ -122,7 +120,7 @@ class UserValueResolverTest extends TestCase
         $metadata = new ArgumentMetadata('foo', InMemoryUser::class, false, false, null, false, [new CurrentUser()]);
 
         $this->expectException(AccessDeniedException::class);
-        $this->expectExceptionMessageMatches('/^The logged-in user is an instance of "Mock_UserInterface[^"]+" but a user of type "Symfony\\\\Component\\\\Security\\\\Core\\\\User\\\\InMemoryUser" is expected.$/');
+        $this->expectExceptionMessage(\sprintf('The logged-in user is an instance of "%s" but a user of type "Symfony\Component\Security\Core\User\InMemoryUser" is expected.', $user::class));
         $resolver->resolve(Request::create('/'), $metadata);
     }
 

@@ -113,10 +113,8 @@ class WeekType extends AbstractType
 
         $choiceTranslationDomainNormalizer = static function (Options $options, $choiceTranslationDomain) {
             if (\is_array($choiceTranslationDomain)) {
-                $default = false;
-
                 return array_replace(
-                    ['year' => $default, 'week' => $default],
+                    ['year' => false, 'week' => false],
                     $choiceTranslationDomain
                 );
             }
@@ -145,7 +143,7 @@ class WeekType extends AbstractType
         $resolver->setNormalizer('choice_translation_domain', $choiceTranslationDomainNormalizer);
         $resolver->setNormalizer('html5', static function (Options $options, $html5) {
             if ($html5 && 'single_text' !== $options['widget']) {
-                throw new LogicException(sprintf('The "widget" option of "%s" must be set to "single_text" when the "html5" option is enabled.', self::class));
+                throw new LogicException(\sprintf('The "widget" option of "%s" must be set to "single_text" when the "html5" option is enabled.', self::class));
             }
 
             return $html5;

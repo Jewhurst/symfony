@@ -1,10 +1,16 @@
 CHANGELOG
 =========
 
-7.1.0
+7.2.1
 -----
 
  * Added `dq()` function to dump SQL queries with their bindings
+
+7.2
+---
+
+ * Add support for `FORCE_COLOR` environment variable
+ * Add support for virtual properties
 
 7.1
 ---

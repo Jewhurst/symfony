@@ -33,6 +33,8 @@ use Twig\NodeVisitor\NodeVisitorInterface;
  */
 final class TranslationDefaultDomainNodeVisitor implements NodeVisitorInterface
 {
+    private const INTERNAL_VAR_NAME = '__internal_trans_default_domain';
+
     private Scope $scope;
 
     public function __construct()
@@ -51,17 +53,16 @@ final class TranslationDefaultDomainNodeVisitor implements NodeVisitorInterface
                 $this->scope->set('domain', $node->getNode('expr'));
 
                 return $node;
-            } else {
-                $var = $this->getVarName();
-                $name = class_exists(AssignContextVariable::class) ? new AssignContextVariable($var, $node->getTemplateLine()) : new AssignNameExpression($var, $node->getTemplateLine());
-                $this->scope->set('domain', class_exists(ContextVariable::class) ? new ContextVariable($var, $node->getTemplateLine()) : new NameExpression($var, $node->getTemplateLine()));
-
-                if (class_exists(Nodes::class)) {
-                    return new SetNode(false, new Nodes([$name]), new Nodes([$node->getNode('expr')]), $node->getTemplateLine());
-                } else {
-                    return new SetNode(false, new Node([$name]), new Node([$node->getNode('expr')]), $node->getTemplateLine());
-                }
             }
+
+            $name = class_exists(AssignContextVariable::class) ? new AssignContextVariable(self::INTERNAL_VAR_NAME, $node->getTemplateLine()) : new AssignNameExpression(self::INTERNAL_VAR_NAME, $node->getTemplateLine());
+            $this->scope->set('domain', class_exists(ContextVariable::class) ? new ContextVariable(self::INTERNAL_VAR_NAME, $node->getTemplateLine()) : new NameExpression(self::INTERNAL_VAR_NAME, $node->getTemplateLine()));
+
+            if (class_exists(Nodes::class)) {
+                return new SetNode(false, new Nodes([$name]), new Nodes([$node->getNode('expr')]), $node->getTemplateLine());
+            }
+
+            return new SetNode(false, new Node([$name]), new Node([$node->getNode('expr')]), $node->getTemplateLine());
         }
 
         if (!$this->scope->has('domain')) {
@@ -117,10 +118,5 @@ final class TranslationDefaultDomainNodeVisitor implements NodeVisitorInterface
         }
 
         return false;
-    }
-
-    private function getVarName(): string
-    {
-        return sprintf('__internal_%s', hash('xxh128', uniqid(mt_rand(), true)));
     }
 }

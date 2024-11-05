@@ -162,7 +162,7 @@ class PercentToLocalizedStringTransformer implements DataTransformerInterface
             $remainder = trim($remainder, " \t\n\r\0\x0b\xc2\xa0");
 
             if ('' !== $remainder) {
-                throw new TransformationFailedException(sprintf('The number contains unrecognized characters: "%s".', $remainder));
+                throw new TransformationFailedException(\sprintf('The number contains unrecognized characters: "%s".', $remainder));
             }
         }
 
@@ -214,8 +214,6 @@ class PercentToLocalizedStringTransformer implements DataTransformerInterface
             \NumberFormatter::ROUND_HALFDOWN => round($number, 0, \PHP_ROUND_HALF_DOWN),
         };
 
-        $number = 1 === $roundingCoef ? (int) $number : $number / $roundingCoef;
-
-        return $number;
+        return 1 === $roundingCoef ? (int) $number : $number / $roundingCoef;
     }
 }

@@ -54,7 +54,7 @@ class ServiceSubscriberTraitTest extends TestCase
         $container = new class([]) implements ContainerInterface {
             use ServiceLocatorTrait;
         };
-        $service = new class() extends ParentWithMagicCall {
+        $service = new class extends ParentWithMagicCall {
             use ServiceSubscriberTrait;
 
             private $container;
@@ -69,7 +69,7 @@ class ServiceSubscriberTraitTest extends TestCase
         $container = new class([]) implements ContainerInterface {
             use ServiceLocatorTrait;
         };
-        $service = new class() {
+        $service = new class {
             use ServiceSubscriberTrait;
 
             private $container;
@@ -86,7 +86,7 @@ class ServiceSubscriberTraitTest extends TestCase
         };
         $container2 = clone $container1;
 
-        $testService = new class() extends LegacyParentTestService2 implements ServiceSubscriberInterface {
+        $testService = new class extends LegacyParentTestService2 implements ServiceSubscriberInterface {
             use ServiceSubscriberTrait;
         };
         $this->assertNull($testService->setContainer($container1));

@@ -19,7 +19,6 @@ namespace Symfony\Component\Process;
  */
 class ExecutableFinder
 {
-    private array $suffixes = ['.exe', '.bat', '.cmd', '.com'];
     private const CMD_BUILTINS = [
         'assoc', 'break', 'call', 'cd', 'chdir', 'cls', 'color', 'copy', 'date',
         'del', 'dir', 'echo', 'endlocal', 'erase', 'exit', 'for', 'ftype', 'goto',
@@ -27,6 +26,16 @@ class ExecutableFinder
         'popd', 'prompt', 'pushd', 'rd', 'rem', 'ren', 'rename', 'rmdir', 'set',
         'setlocal', 'shift', 'start', 'time', 'title', 'type', 'ver', 'vol',
     ];
+
+    private array $suffixes = [];
+
+    public function __construct()
+    {
+        // Set common extensions on Windows.
+        if ('\\' === \DIRECTORY_SEPARATOR) {
+            $this->suffixes = ['.exe', '.bat', '.cmd', '.com'];
+        }
+    }
 
     /**
      * Replaces default suffixes of executable.
@@ -37,7 +46,10 @@ class ExecutableFinder
     }
 
     /**
-     * Adds new possible suffix to check for executable.
+     * Adds new possible suffix to check for executable, including the dot (.).
+     *
+     *     $finder = new ExecutableFinder();
+     *     $finder->addSuffix('.foo');
      */
     public function addSuffix(string $suffix): void
     {
@@ -64,10 +76,10 @@ class ExecutableFinder
         );
 
         $suffixes = [''];
-        if ('\\' === \DIRECTORY_SEPARATOR) {
-            $pathExt = getenv('PATHEXT');
-            $suffixes = array_merge($pathExt ? explode(\PATH_SEPARATOR, $pathExt) : $this->suffixes, $suffixes);
+        if ('\\' === \DIRECTORY_SEPARATOR && $pathExt = getenv('PATHEXT')) {
+            $suffixes = array_merge(explode(\PATH_SEPARATOR, $pathExt), $suffixes);
         }
+        $suffixes = array_merge($suffixes, $this->suffixes);
         foreach ($suffixes as $suffix) {
             foreach ($dirs as $dir) {
                 if ('' === $dir) {

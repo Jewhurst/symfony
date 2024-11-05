@@ -529,7 +529,7 @@ class AbstractObjectNormalizerTest extends TestCase
     {
         $factory = new ClassMetadataFactory(new AttributeLoader());
 
-        $loaderMock = new class() implements ClassMetadataFactoryInterface {
+        $loaderMock = new class implements ClassMetadataFactoryInterface {
             public function getMetadataFor($value): ClassMetadataInterface
             {
                 if (AbstractDummy::class === $value) {
@@ -564,7 +564,7 @@ class AbstractObjectNormalizerTest extends TestCase
     {
         $factory = new ClassMetadataFactory(new AttributeLoader());
 
-        $loaderMock = new class() implements ClassMetadataFactoryInterface {
+        $loaderMock = new class implements ClassMetadataFactoryInterface {
             public function getMetadataFor($value): ClassMetadataInterface
             {
                 if (AbstractDummy::class === $value) {
@@ -617,7 +617,7 @@ class AbstractObjectNormalizerTest extends TestCase
 
     public function testDenormalizeWithNestedDiscriminatorMap()
     {
-        $classDiscriminatorResolver = new class() implements ClassDiscriminatorResolverInterface {
+        $classDiscriminatorResolver = new class implements ClassDiscriminatorResolverInterface {
             public function getMappingForClass(string $class): ?ClassDiscriminatorMapping
             {
                 return match ($class) {
@@ -870,7 +870,7 @@ class AbstractObjectNormalizerTest extends TestCase
             '99' => 'baz',
         ];
 
-        $obj = new class() {
+        $obj = new class {
             #[SerializedName('1')]
             public $foo;
 
@@ -894,7 +894,7 @@ class AbstractObjectNormalizerTest extends TestCase
             ],
         ];
 
-        $obj = new class() {
+        $obj = new class {
             #[SerializedPath('[data][id]')]
             public $id;
         };
@@ -905,7 +905,7 @@ class AbstractObjectNormalizerTest extends TestCase
 
     public function testNormalizeBasedOnAllowedAttributes()
     {
-        $normalizer = new class() extends AbstractObjectNormalizer {
+        $normalizer = new class extends AbstractObjectNormalizer {
             public function getSupportedTypes(?string $format): array
             {
                 return ['*' => false];
@@ -985,7 +985,7 @@ class AbstractObjectNormalizerTest extends TestCase
         $foobar->bar = 'bar';
         $foobar->baz = 'baz';
 
-        $normalizer = new class() extends AbstractObjectNormalizerDummy {
+        $normalizer = new class extends AbstractObjectNormalizerDummy {
             public $childContextCacheKey;
 
             protected function extractAttributes(object $object, ?string $format = null, array $context = []): array
@@ -1025,7 +1025,7 @@ class AbstractObjectNormalizerTest extends TestCase
         $foobar->bar = 'bar';
         $foobar->baz = 'baz';
 
-        $normalizer = new class() extends AbstractObjectNormalizerDummy {
+        $normalizer = new class extends AbstractObjectNormalizerDummy {
             public $childContextCacheKey;
 
             protected function extractAttributes(object $object, ?string $format = null, array $context = []): array
@@ -1060,7 +1060,7 @@ class AbstractObjectNormalizerTest extends TestCase
         $foobar->bar = 'bar';
         $foobar->baz = 'baz';
 
-        $normalizer = new class() extends AbstractObjectNormalizerDummy {
+        $normalizer = new class extends AbstractObjectNormalizerDummy {
             public $childContextCacheKey;
 
             protected function extractAttributes(object $object, ?string $format = null, array $context = []): array
@@ -1090,7 +1090,7 @@ class AbstractObjectNormalizerTest extends TestCase
 
     public function testDenormalizeXmlScalar()
     {
-        $normalizer = new class() extends AbstractObjectNormalizer {
+        $normalizer = new class extends AbstractObjectNormalizer {
             public function __construct()
             {
                 parent::__construct(null, new MetadataAwareNameConverter(new ClassMetadataFactory(new AttributeLoader())));
@@ -1230,7 +1230,7 @@ class AbstractObjectNormalizerTest extends TestCase
 
     public function testDenormalizeArrayObject()
     {
-        $normalizer = new class() extends AbstractObjectNormalizerDummy {
+        $normalizer = new class extends AbstractObjectNormalizerDummy {
             public function __construct()
             {
                 parent::__construct(null, null, new PhpDocExtractor());

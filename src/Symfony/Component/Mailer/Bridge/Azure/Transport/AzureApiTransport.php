@@ -52,7 +52,7 @@ final class AzureApiTransport extends AbstractApiTransport
 
     public function __toString(): string
     {
-        return sprintf('azure+api://%s', $this->getAzureCSEndpoint());
+        return \sprintf('azure+api://%s', $this->getAzureCSEndpoint());
     }
 
     /**
@@ -65,7 +65,7 @@ final class AzureApiTransport extends AbstractApiTransport
 
         $response = $this->client->request('POST', 'https://'.$endpoint, [
             'body' => json_encode($payload),
-            'headers' => $this->getSignedHeaders($payload, $email),
+            'headers' => $this->getSignedHeaders($payload),
         ]);
 
         try {
@@ -79,7 +79,7 @@ final class AzureApiTransport extends AbstractApiTransport
                 $result = $response->toArray(false);
                 throw new HttpTransportException('Unable to send an email (.'.$result['error']['code'].'): '.$result['error']['message'], $response, $statusCode);
             } catch (DecodingExceptionInterface $e) {
-                throw new HttpTransportException('Unable to send an email: '.$response->getContent(false).sprintf(' (code %d).', $statusCode), $response, 0, $e);
+                throw new HttpTransportException('Unable to send an email: '.$response->getContent(false).\sprintf(' (code %d).', $statusCode), $response, 0, $e);
             }
         }
 
@@ -167,7 +167,7 @@ final class AzureApiTransport extends AbstractApiTransport
      */
     private function getAzureCSEndpoint(): string
     {
-        return $this->host ?: sprintf(self::HOST, $this->resourceName);
+        return $this->host ?: \sprintf(self::HOST, $this->resourceName);
     }
 
     private function generateContentHash(string $content): string
@@ -189,7 +189,7 @@ final class AzureApiTransport extends AbstractApiTransport
     /**
      * Get authenticated headers for signed request,.
      */
-    private function getSignedHeaders(array $payload, Email $message): array
+    private function getSignedHeaders(array $payload): array
     {
         // HTTP Method verb (uppercase)
         $verb = 'POST';

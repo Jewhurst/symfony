@@ -63,7 +63,12 @@ class SendFailedMessageForRetryListener implements EventSubscriberInterface
 
             ++$retryCount;
 
-            $delay = $retryStrategy->getWaitingTime($envelope, $throwable);
+            $delay = null;
+            if ($throwable instanceof RecoverableExceptionInterface && method_exists($throwable, 'getRetryDelay')) {
+                $delay = $throwable->getRetryDelay();
+            }
+
+            $delay ??= $retryStrategy->getWaitingTime($envelope, $throwable);
 
             $this->logger?->warning('Error thrown while handling message {class}. Sending for retry #{retryCount} using {delay} ms delay. Error: "{error}"', $context + ['retryCount' => $retryCount, 'delay' => $delay, 'error' => $throwable->getMessage(), 'exception' => $throwable]);
 
@@ -158,6 +163,6 @@ class SendFailedMessageForRetryListener implements EventSubscriberInterface
             return $this->sendersLocator->get($alias);
         }
 
-        throw new RuntimeException(sprintf('Could not find sender "%s" based on the same receiver to send the failed message to for retry.', $alias));
+        throw new RuntimeException(\sprintf('Could not find sender "%s" based on the same receiver to send the failed message to for retry.', $alias));
     }
 }

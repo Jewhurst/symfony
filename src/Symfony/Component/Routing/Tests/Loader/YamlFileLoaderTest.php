@@ -474,8 +474,8 @@ class YamlFileLoaderTest extends TestCase
     {
         new LoaderResolver([
             $loader = new YamlFileLoader(new FileLocator(\dirname(__DIR__).'/Fixtures/localized')),
-            new class() extends AttributeClassLoader {
-                protected function configureRoute(Route $route, \ReflectionClass $class, \ReflectionMethod $method, object $annot): void
+            new class extends AttributeClassLoader {
+                protected function configureRoute(Route $route, \ReflectionClass $class, \ReflectionMethod $method, object $attr): void
                 {
                     $route->setDefault('_controller', $class->getName().'::'.$method->getName());
                 }
@@ -498,8 +498,8 @@ class YamlFileLoaderTest extends TestCase
         new LoaderResolver([
             $loader = new YamlFileLoader($locator),
             new Psr4DirectoryLoader($locator),
-            new class() extends AttributeClassLoader {
-                protected function configureRoute(Route $route, \ReflectionClass $class, \ReflectionMethod $method, object $annot): void
+            new class extends AttributeClassLoader {
+                protected function configureRoute(Route $route, \ReflectionClass $class, \ReflectionMethod $method, object $attr): void
                 {
                     $route->setDefault('_controller', $class->getName().'::'.$method->getName());
                 }
@@ -523,8 +523,8 @@ class YamlFileLoaderTest extends TestCase
     {
         new LoaderResolver([
             $loader = new YamlFileLoader(new FileLocator(\dirname(__DIR__).'/Fixtures')),
-            new class() extends AttributeClassLoader {
-                protected function configureRoute(Route $route, \ReflectionClass $class, \ReflectionMethod $method, object $annot): void
+            new class extends AttributeClassLoader {
+                protected function configureRoute(Route $route, \ReflectionClass $class, \ReflectionMethod $method, object $attr): void
                 {
                     $route->setDefault('_controller', $class->getName().'::'.$method->getName());
                 }
